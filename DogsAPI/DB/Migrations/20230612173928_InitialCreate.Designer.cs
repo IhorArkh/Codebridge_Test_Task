@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DogsAPI.Migrations
 {
     [DbContext(typeof(DogsContext))]
-    [Migration("20230612122701_InitialCreate")]
+    [Migration("20230612173928_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
