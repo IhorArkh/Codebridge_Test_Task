@@ -1,6 +1,6 @@
+using AspNetCoreRateLimit;
 using DogsAPI.DB;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace DogsAPI
 {
@@ -12,11 +12,31 @@ namespace DogsAPI
 
             // Add services to the container
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddDbContext<DogsContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddMemoryCache();
+
+            builder.Services.Configure<IpRateLimitOptions>(options =>
+            {
+                options.GeneralRules = new List<RateLimitRule>
+                {
+                    new RateLimitRule
+                    {
+                        Endpoint = "*",
+                        Limit = 10,
+                        Period = "1s"
+                    }
+                };
+            });
+
+            builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+            builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+            builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+            builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
             var app = builder.Build();
 
@@ -26,6 +46,8 @@ namespace DogsAPI
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseIpRateLimiting();
 
             app.UseRouting();
 
