@@ -27,9 +27,16 @@ namespace DogsAPI
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+
+            app.UseHttpsRedirection();
 
             app.MapControllers();
 
