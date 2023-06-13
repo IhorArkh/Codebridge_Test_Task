@@ -24,7 +24,7 @@ namespace DogsAPI.Controllers
         }
 
         [HttpGet("dogs")]
-        public ActionResult Get(string? attribute, string? order, int pageNumber = 0, int dogsPerPage = 0)
+        public ActionResult GetDogs(string? attribute, string? order, int pageNumber = 0, int dogsPerPage = 0)
         {
             IQueryable<Dog> query = _dbContext.Dogs;
 
@@ -63,7 +63,9 @@ namespace DogsAPI.Controllers
         [HttpPost("dog")]
         public async Task<IActionResult> CreateDog(Dog dog)
         {
-            if (ModelState.IsValid)
+            bool isAnyFieldNull = typeof(Dog).GetProperties().Any(property => property.GetValue(dog) == null);
+
+            if (ModelState.IsValid && !isAnyFieldNull)
             {
                 var existingDog = await _dbContext.Dogs.FirstOrDefaultAsync(d => d.Name == dog.Name);
                 if (existingDog != null)
@@ -78,7 +80,7 @@ namespace DogsAPI.Controllers
 
                 if (dog.Weight < 0)
                 {
-                    return BadRequest("Tail weight cannot be a negative number.");
+                    return BadRequest("Weight cannot be a negative number.");
                 }
 
                 await _dbContext.Dogs.AddAsync(dog);

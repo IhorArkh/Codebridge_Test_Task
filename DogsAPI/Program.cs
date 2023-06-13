@@ -1,4 +1,3 @@
-using AspNetCoreRateLimit;
 using DogsAPI.DB;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,26 +17,6 @@ namespace DogsAPI
 
             builder.Services.AddDbContext<DogsContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            builder.Services.AddMemoryCache();
-
-            builder.Services.Configure<IpRateLimitOptions>(options =>
-            {
-                options.GeneralRules = new List<RateLimitRule>
-                {
-                    new RateLimitRule
-                    {
-                        Endpoint = "*",
-                        Limit = 10,
-                        Period = "1s"
-                    }
-                };
-            });
-
-            builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
-            builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
-            builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
-            builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
-
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -47,7 +26,7 @@ namespace DogsAPI
                 app.UseSwaggerUI();
             }
 
-            app.UseIpRateLimiting();
+            app.UseMiddleware<RequestRateLimitMiddleware>(2);
 
             app.UseRouting();
 
